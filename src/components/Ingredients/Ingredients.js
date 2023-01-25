@@ -25,6 +25,10 @@ function Ingredients() {
       });
   }, []);
 
+  const filteredIngredientsHandler = (filteredIngredients) => {
+    setUserIngredients(filteredIngredients);
+  };
+
   const addIngredientHandler = (ingredient) => {
     fetch(
       "https://react-hooks-update-883ba-default-rtdb.firebaseio.com/ingredients.json",
@@ -56,7 +60,7 @@ function Ingredients() {
       <IngredientForm onAddIngredient={addIngredientHandler} />
 
       <section>
-        <Search />
+        <Search onLoadIngredients={filteredIngredientsHandler} />
         <IngredientsList
           ingredients={userIngredients}
           onRemoveItem={removeIngredientHandler}
