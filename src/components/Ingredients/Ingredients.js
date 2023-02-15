@@ -1,4 +1,4 @@
-import React, { useReducer, useCallback, useMemo } from "react";
+import React, { useReducer, useCallback, useMemo, useEffect } from "react";
 
 import IngredientForm from "./IngredientForm";
 import IngredientsList from "./IngredientList";
@@ -21,7 +21,19 @@ const ingredientReducer = (currentIngredients, action) => {
 
 function Ingredients() {
   const [userIngredients, dispatch] = useReducer(ingredientReducer, []);
-  const { isLoading, error, data, sendRequest } = useHttp();
+  const { isLoading, error, data, sendRequest, reqExtra, reqIdentifier } =
+    useHttp();
+
+  useEffect(() => {
+    if (!isLoading && !error && reqIdentifier === "REMOVE_INGREDIENT") {
+      dispatch({ type: "DELETE", id: reqExtra });
+    } else if (!isLoading && !error && reqIdentifier === "ADD_INGREDIENT") {
+      dispatch({
+        type: "ADD",
+        ingredient: { id: data.name, ...reqExtra },
+      });
+    }
+  }, [data, reqExtra, reqIdentifier, isLoading, error]);
 
   const filteredIngredientsHandler = useCallback((filteredIngredients) => {
     // setUserIngredients(filteredIngredients);
@@ -29,6 +41,13 @@ function Ingredients() {
   }, []);
 
   const addIngredientHandler = useCallback((ingredient) => {
+    sendRequest(
+      "https://react-hooks-update-883ba-default-rtdb.firebaseio.com/ingredients.json",
+      "POST",
+      JSON.stringify(ingredient),
+      ingredient,
+      "ADD_INGREDIENT"
+    );
     // dispatchHttp({ type: "SEND" });
     // fetch(
     //   "https://react-hooks-update-883ba-default-rtdb.firebaseio.com/ingredients.json",
@@ -55,10 +74,13 @@ function Ingredients() {
   }, []);
 
   const removeIngredientHandler = useCallback(
-    (id) => {
+    (ingredientId) => {
       sendRequest(
-        `https://react-hooks-update-883ba-default-rtdb.firebaseio.com/ingredients/${id}.json`,
-        "DELETE"
+        `https://react-hooks-update-883ba-default-rtdb.firebaseio.com/ingredients/${ingredientId}.json`,
+        "DELETE",
+        null,
+        ingredientId,
+        "REMOVE_INGREDIENT"
       );
     },
     [sendRequest]
